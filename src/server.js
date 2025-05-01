@@ -1,12 +1,15 @@
-const express = require("express");
-const morgan = require("morgan");
-const dotenv = require("dotenv");
-const errorHandler = require("./middleware/errorHandler");
-const userRouter = require("./routes/user");
+const express = require("express"); // Express framework
+const morgan = require("morgan"); // HTTP request logger
+const dotenv = require("dotenv"); // Environment variable configuration
+const errorHandler = require("./middleware/errorHandler"); // Error handling middleware
+//const cors = require("cors");
+const userRoutes = require("./routes/user"); // User routes
 
-const app = express();
-dotenv.config();
+dotenv.config(); // Load environment variables
 
+const app = express(); // Create an instance of express
+
+// Middleware
 app.use(morgan("dev"));
 app.use(express.json());
 
@@ -15,12 +18,14 @@ app.get("/api/ping", (req, res) => {
   res.send({ message: "We are Live!!" });
 });
 
+
+app.use("/api/user", userRoutes); // User routes setup
+
+// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`SERVER running on PORT: ${PORT}`);
 });
 
-app.use("/api/user", userRouter);
-
 //Keep at the bottom
-app.use(errorHandler);
+app.use(errorHandler); 

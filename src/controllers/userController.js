@@ -89,8 +89,56 @@ const getMe = async (req, res, next) => {
   }
 };
 
+// Fetch all users (use middleware to protect this route)
+const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        firstname: true,
+        lastname: true,
+        createdAt: true,
+        updatedAt: true, 
+      }
+    });
+    res.json(users); // Send the list of users as a response
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Fetch single user by ID
+const getUserbyId = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true, 
+        email: true, 
+        username: true,
+        firstname: true,
+        lastname: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+    // Check if user exists
+    if (!user)
+      return res.status(404).json({ error: "User not found" });
+    res.json(user); // Send the user data as a response
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Export functions to be used in routes
 module.exports = {
   registerUser,
   loginUser,
   getMe,
+  getAllUsers,
+  getUserbyId
 };
