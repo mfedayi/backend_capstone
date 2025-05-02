@@ -134,11 +134,80 @@ const getUserbyId = async (req, res, next) => {
   }
 }
 
+// Update user by ID
+const updateUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { email, firstname, lastname } = req.body;
+
+    if (!firstname && !lastname && !email) {
+      return res.status(400).json({ error: "No update fields provided." });
+    }
+
+    const updateData = {};
+    if (firstname) updateData.firstname = firstname;
+    if (lastname) updateData.lastname = lastname;
+    if (email) {
+      const emailExists = await prisma.user.findFirst({
+        where: {
+          email: email,
+          id: { not: id },
+        },
+      });
+      if (emailExists) {
+        return res
+          .status(400)
+          .json({ error: "Email already in use by another account." });
+      }
+      updateData.email = email;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: id },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        firstname: true,
+        lastname: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    next(error);
+  }
+};
+
+// Delete user by ID
+const deleteSingleUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await prisma.user.delete({
+      where: { id: id },
+    });
+    return res.status(204).json({ Message: "User successfully deleted" });
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    next(error);
+  }
+};
+
 // Export functions to be used in routes
 module.exports = {
   registerUser,
   loginUser,
   getMe,
   getAllUsers,
-  getUserbyId
+  getUserbyId,
+  updateUser,
+  deleteSingleUser
 };
