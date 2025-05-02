@@ -6,6 +6,9 @@ const {
   createToken,
 } = require("../utils/authHelpers");
 
+// Importing the user services
+const { updateUserById, deleteUserById } = require("../services/userServices");
+
 //POST /api/user/register
 const registerUser = async (req, res, next) => {
   try {
@@ -100,8 +103,8 @@ const getAllUsers = async (req, res, next) => {
         firstname: true,
         lastname: true,
         createdAt: true,
-        updatedAt: true, 
-      }
+        updatedAt: true,
+      },
     });
     res.json(users); // Send the list of users as a response
   } catch (error) {
@@ -116,23 +119,69 @@ const getUserbyId = async (req, res, next) => {
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
-        id: true, 
-        email: true, 
+        id: true,
+        email: true,
         username: true,
         firstname: true,
         lastname: true,
         createdAt: true,
         updatedAt: true,
-      }
+      },
     });
     // Check if user exists
-    if (!user)
-      return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(404).json({ error: "User not found" });
     res.json(user); // Send the user data as a response
   } catch (error) {
     next(error);
   }
-}
+};
+
+// PUT /api/user/:id (Protected)
+const updateUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { email, firstname, lastname } = req.body;
+
+    if (!firstname && !lastname && !email) {
+      return res.status(400).json({ error: "No update fields provided." });
+    }
+
+    const updateData = {};
+    if (firstname) updateData.firstname = firstname;
+    if (lastname) updateData.lastname = lastname;
+    if (email) updateData.email = email;
+
+    const updatedUser = await updateUserById(id, updateData);
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    next(error);
+  }
+};
+
+// DELETE /api/user/:id (Protected)
+const deleteSingleUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await deleteUserById(id);
+    res.status(204).send();
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    next(error);
+  }
+};
 
 // Export functions to be used in routes
 module.exports = {
@@ -140,5 +189,7 @@ module.exports = {
   loginUser,
   getMe,
   getAllUsers,
-  getUserbyId
+  getUserbyId,
+  updateUser,
+  deleteSingleUser,
 };
