@@ -135,41 +135,18 @@ const getUserbyId = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { email, firstname, lastname } = req.body;
+    const { email, firstname, lastname, username } = req.body;
 
-    if (!firstname && !lastname && !email) {
+    if (!firstname && !lastname && !email && !username) {
       return res.status(400).json({ error: "No update fields provided." });
     }
-
-    const updateData = {};
-    if (firstname) updateData.firstname = firstname;
-    if (lastname) updateData.lastname = lastname;
-    if (email) {
-      const emailExists = await prisma.user.findFirst({
-        where: {
-          email: email,
-          id: { not: id },
-        },
-      });
-      if (emailExists) {
-        return res
-          .status(400)
-          .json({ error: "Email already in use by another account." });
-      }
-      updateData.email = email;
-    }
-
     const updatedUser = await prisma.user.update({
-      where: { id: id },
-      data: updateData,
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        firstname: true,
-        lastname: true,
-        createdAt: true,
-        updatedAt: true,
+      where: { id },
+      data: {
+        email,
+        username,
+        firstname,
+        lastname,
       },
     });
 
