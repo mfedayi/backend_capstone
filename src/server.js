@@ -34,8 +34,4 @@ app.listen(PORT, () => {
 });
 
 //Keep at the bottom
-<<<<<<< HEAD
 app.use(errorHandler);
-=======
-app.use(errorHandler);
->>>>>>> 4327eed08a990495afbc925d6698a88756fe42db
