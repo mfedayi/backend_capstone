@@ -16,9 +16,10 @@ const registerUser = async (req, res, next) => {
     }
 
     const [emailExists, usernameExists] = await Promise.all([
-      await prisma.user.findUnique({ where: { email } }),
-      await prisma.user.findUnique({ where: { username } }),
+      prisma.user.findUnique({ where: { email } }),
+      prisma.user.findUnique({ where: { username } }),
     ]);
+
     if (emailExists || usernameExists) {
       const errors = [];
       if (emailExists) errors.push("Email already in use.");
@@ -43,17 +44,19 @@ const loginUser = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
-      res.status(400).json({ error: "Please enter email and password" });
+      return res.status(400).json({ error: "Please enter email and password" });
     }
     const user = await prisma.user.findUnique({
       where: { username },
     });
     if (!user) {
-      res.status(400).json({ error: "Please enter correct credinitals" });
+      return res
+        .status(400)
+        .json({ error: "Please enter correct credinitals" });
     }
     const isPassMatch = await comparePassword(password, user.password);
     if (!isPassMatch) {
-      res.status(400).json({ error: "Email And Or Password Invalid" });
+      return res.status(400).json({ error: "Email And Or Password Invalid" });
     }
 
     const token = createToken({ id: user.id });
@@ -65,7 +68,6 @@ const loginUser = async (req, res, next) => {
 
 const getMe = async (req, res, next) => {
   try {
-    // Fetch the current user by ID, selecting only safe fields
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: {
@@ -89,7 +91,6 @@ const getMe = async (req, res, next) => {
   }
 };
 
-// Fetch all users (use middleware to protect this route)
 const getAllUsers = async (req, res, next) => {
   try {
     const users = await prisma.user.findMany({
@@ -100,71 +101,20 @@ const getAllUsers = async (req, res, next) => {
         firstname: true,
         lastname: true,
         createdAt: true,
-        updatedAt: true, 
-      }
+        updatedAt: true,
+      },
     });
-    res.json(users); // Send the list of users as a response
+    res.json(users);
   } catch (error) {
     next(error);
   }
 };
 
-// Fetch single user by ID
 const getUserbyId = async (req, res, next) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true, 
-        email: true, 
-        username: true,
-        firstname: true,
-        lastname: true,
-        createdAt: true,
-        updatedAt: true,
-      }
-    });
-    // Check if user exists
-    if (!user)
-      return res.status(404).json({ error: "User not found" });
-    res.json(user); // Send the user data as a response
-  } catch (error) {
-    next(error);
-  }
-}
-
-// Update user by ID
-const updateUser = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { email, firstname, lastname } = req.body;
-
-    if (!firstname && !lastname && !email) {
-      return res.status(400).json({ error: "No update fields provided." });
-    }
-
-    const updateData = {};
-    if (firstname) updateData.firstname = firstname;
-    if (lastname) updateData.lastname = lastname;
-    if (email) {
-      const emailExists = await prisma.user.findFirst({
-        where: {
-          email: email,
-          id: { not: id },
-        },
-      });
-      if (emailExists) {
-        return res
-          .status(400)
-          .json({ error: "Email already in use by another account." });
-      }
-      updateData.email = email;
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id: id },
-      data: updateData,
       select: {
         id: true,
         email: true,
@@ -173,6 +123,30 @@ const updateUser = async (req, res, next) => {
         lastname: true,
         createdAt: true,
         updatedAt: true,
+      },
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { email, firstname, lastname, username } = req.body;
+
+    if (!firstname && !lastname && !email && !username) {
+      return res.status(400).json({ error: "No update fields provided." });
+    }
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        email,
+        username,
+        firstname,
+        lastname,
       },
     });
 
@@ -185,14 +159,13 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-// Delete user by ID
 const deleteSingleUser = async (req, res, next) => {
   try {
     const { id } = req.params;
     await prisma.user.delete({
       where: { id: id },
     });
-    return res.status(204).json({ Message: "User successfully deleted" });
+    res.status(204).send();
   } catch (error) {
     if (error.code === "P2025") {
       return res.status(404).json({ error: "User not found" });
@@ -201,7 +174,6 @@ const deleteSingleUser = async (req, res, next) => {
   }
 };
 
-// Export functions to be used in routes
 module.exports = {
   registerUser,
   loginUser,
@@ -209,5 +181,5 @@ module.exports = {
   getAllUsers,
   getUserbyId,
   updateUser,
-  deleteSingleUser
+  deleteSingleUser,
 };
