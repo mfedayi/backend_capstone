@@ -3,23 +3,25 @@ const { prisma } = require("../utils/common");
 const getFavorites = async (req, res, next) => {
   try {
     const favorites = await prisma.favorite.findMany({
-      where: { id: req.user.id },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        firstname: true,
-        lastname: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      where: { userId: req.user.id },
     });
 
     if (!favorites) {
       return res.status(404).json({ error: "favorite teams does not exist" });
     }
-
-    res.json(user);
+    
+    const teamIds = await favorites.map((fav) => fav.teamId);
+    const response = await axios.get(
+      "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=NBA"
+    );
+    const allTeams = response.data.teams;
+    const favTeam = allTeams.filter((team) => teamIds.includes(team.teamId));
+    const favTeamData = favTeam.map((f) =>({
+        teamId: team.idTeam,
+        teamName: team.strTeam,
+        teamLogo: team.strBadge
+    })) 
+    res.json(favTeamData);
   } catch (error) {
     next(error);
   }
