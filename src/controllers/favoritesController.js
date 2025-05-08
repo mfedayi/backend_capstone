@@ -1,3 +1,4 @@
+const { useParams } = require("react-router-dom");
 const { prisma } = require("../utils/common");
 
 const getFavorites = async (req, res, next) => {
@@ -9,18 +10,18 @@ const getFavorites = async (req, res, next) => {
     if (!favorites) {
       return res.status(404).json({ error: "favorite teams does not exist" });
     }
-    
+
     const teamIds = await favorites.map((fav) => fav.teamId);
     const response = await axios.get(
       "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=NBA"
     );
     const allTeams = response.data.teams;
-    const favTeam = allTeams.filter((team) => teamIds.includes(team.teamId));
-    const favTeamData = favTeam.map((f) =>({
-        teamId: team.idTeam,
-        teamName: team.strTeam,
-        teamLogo: team.strBadge
-    })) 
+    const favTeam = allTeams.filter((team) => teamIds.includes(team.idTeam));
+    const favTeamData = favTeam.map((team) => ({
+      teamId: team.idTeam,
+      teamName: team.strTeam,
+      teamLogo: team.strBadge,
+    }));
     res.json(favTeamData);
   } catch (error) {
     next(error);
@@ -28,7 +29,32 @@ const getFavorites = async (req, res, next) => {
 };
 
 const addFavoriteTeam = async (req, res, next) => {
-  res.json("Adding favorite teams");
+  try {
+    const { teamId } = req.params;
+
+    const existing = await prisma.favorite.findFirst({
+      where: {
+        userId: req.user.id,
+        teamId: teamId,
+      },
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        error: "Team is already in favorites",
+      });
+    }
+
+    const favorite = await prisma.favorite.create({
+      data: {
+        userId: req.user.id,
+        teamId: teamId,
+      },
+    });
+    res.status(201).json(favorite);
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = {
