@@ -1,19 +1,38 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios");
 const Base_URL = "https://www.thesportsdb.com/api/v1/json/3";
 router.get("/", async (req, res) => {
+    // try {
+    //   const response = await axios.get(`${Base_URL}/search_all_teams.php?l=NBA`);
+    //   console.log(response.teams);
+    //   const teams = response.data.teams.map((team) => ({
+    //     teamId: team.idTeam,
+    //     teamName: team.strTeam,
+    //     teamLogo: team.strBadge,
+    //   }));
+    //   res.status(200).json(response);
+    // } catch (error) {
+    //   console.log(error);
+    //   res.status(500).json({
+    //     error: "Failed to fetch teams",
+    //   });
+    // }
+
+  const url =
+    "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=NBA";
   try {
-    const response = await axios.get(`${Base_URL}search_all_teams.php?l=NBA`);
-    const teams = response.data.teams.map((team) => ({
-      teamId: team.idTeam,
-      teamName: team.strTeam,
-      teamLogo: team.strBadge,
-    }));
-    res.json(teams);
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    const json = await response.json();
+    console.log(json.teams);
+    res.json(json.teams);
   } catch (error) {
-    res.status("500").json({
-      error: "Failed to fetch teams",
-    });
+    console.error(error.message);
+    res.status(400);
   }
 });
 
@@ -48,3 +67,4 @@ router.get("/:teamName", async (req, res) => {
     res.send("Team details for a single team");
   } catch (error) {}
 });
+module.exports = router;

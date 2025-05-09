@@ -4,6 +4,7 @@ const dotenv = require("dotenv"); // Environment variable configuration
 const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler"); // Error handling middleware
 const userRoutes = require("./routes/user"); // User routes
+const teamRoutes = require("./routes/teams"); // User routes
 
 dotenv.config(); // Load environment variables
 
@@ -26,6 +27,7 @@ app.get("/api/ping", (req, res) => {
 });
 
 app.use("/api/user", userRoutes); // User routes setup
+app.use("/api/teams", teamRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
