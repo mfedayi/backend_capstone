@@ -15,3 +15,5 @@ router.delete(
   deleteReply
 );
 //Route for user deleting his own replies and posts
+
+module.exports = router;

@@ -7,5 +7,7 @@ const {
 } = require("../controllers/favoritesController");
 const isLoggedIn = require("../middleware/isLoggedIn");
 
-router.get("/favorites", isLoggedIn, getFavorites);
-router.post("/favorites:teamId", isLoggedIn, addFavoriteTeam);
+router.get("/", isLoggedIn, getFavorites);
+router.post("/:teamId", isLoggedIn, addFavoriteTeam);
+
+module.exports = router;
