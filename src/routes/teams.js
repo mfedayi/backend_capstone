@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 const Base_URL = "https://www.thesportsdb.com/api/v1/json/3";
+
+// Get all NBA teams
 router.get("/", async (req, res) => {
   try {
     const response = await axios.get(`${Base_URL}/search_all_teams.php?l=NBA`);
@@ -18,24 +20,39 @@ router.get("/", async (req, res) => {
       error: "Failed to fetch teams",
     });
   }
-
-  //   const url =
-  //     "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=NBA";
-  //   try {
-  //     const response = await fetch(url);
-  //     if (!response.ok) {
-  //       throw new Error(`Response status: ${response.status}`);
-  //     }
-
-  //     const json = await response.json();
-  //     console.log(json.teams);
-  //     res.json(json.teams);
-  //   } catch (error) {
-  //     console.error(error.message);
-  //     res.status(400);
-  //   }
 });
 
+// Get team roster by team ID
+router.get("/players/:idTeam", async (req, res) => {
+  try {
+    const { idTeam } = req.params; // Get the team ID from the request parameters
+    const response = await axios.get( 
+      `${Base_URL}/lookup_all_players.php?id=${idTeam}` 
+    );
+    const players = response.data?.player; // Extract the players from the response
+
+    if (!players) {
+      return res.status(404).json({
+        error: "No players found for this team"
+      });
+    }
+    const formattedPlayers = players.map((player) => ({ // Extract relevant player information
+      idPlayer: player.idPlayer,
+      name: player.strPlayer,
+      position: player.strPosition,
+      nationality: player.strNationality,
+      cutout: player.strCutout, // Player cutout image
+    }));
+    res.status(200).json(formattedPlayers); // Send the formatted players as a response
+  } catch (error) {
+    console.error("Error fetching players:", error);
+    res.status(500).json({
+      error: "Failed to fetch players",
+    });
+  }
+});
+
+// Get team details by team name
 router.get("/:teamName", async (req, res) => {
   try {
     const encodedName = encodeURIComponent(req.params.teamName);
@@ -62,11 +79,11 @@ router.get("/:teamName", async (req, res) => {
         twitter: team.strTwitter,
         description: team.strDescriptionEN,
       });
-    
-
-    //res.status(200).json(team);
   } catch (error) {
     console.log(error);
+    res.status(500).json({
+      error: "Failed to fetch team details",
+    });
   }
 });
 module.exports = router;
