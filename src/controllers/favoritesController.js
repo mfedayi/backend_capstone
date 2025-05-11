@@ -1,4 +1,4 @@
-const { useParams } = require("react-router-dom");
+const axios = require("axios"); // Import axios to make API requests
 const { prisma } = require("../utils/common");
 
 const getFavorites = async (req, res, next) => {
