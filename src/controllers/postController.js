@@ -18,6 +18,41 @@ const addPost = async (req, res, next) => {
   }
 };
 
+const getAllPosts = async (req, res, next) => {
+  try {
+    const posts = await prisma.post.findMany({
+      orderBy: {
+        createdAt: 'desc', // Show newest posts first
+      },
+      include: {
+        user: { 
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+        replies: { 
+          orderBy: {
+            createdAt: 'asc', 
+          },
+          include: {
+            user: { 
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    res.json(posts);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addPost,
+  getAllPosts,
 };
