@@ -22,6 +22,41 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Get team details by team name
+router.get("/:teamName", async (req, res) => {
+  try {
+    const encodedName = encodeURIComponent(req.params.teamName);
+    const response = await axios.get(
+      `${Base_URL}/searchteams.php?t=${encodedName}`
+    );
+    const team = await response.data.teams?.[0];
+    if (!team) {
+      res.status(404).json({
+        error: "Team not found",
+      });
+    }
+      res.status(200).json({
+        teamId: team.idTeam,
+        teamName: team.strTeam,
+        teamBadge: team.strBadge,
+        teamLogo: team.strLogo,
+        formedYear: team.intFormedYear,
+        stadium: team.strStadium,
+        city: team.strLocation,
+        website: team.strWebsite,
+        facebook: team.strFacebook,
+        instagram: team.strInstagram,
+        twitter: team.strTwitter,
+        description: team.strDescriptionEN,
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "Failed to fetch team details",
+    });
+  }
+});
+
 // Get team roster by team ID
 router.get("/players/:idTeam", async (req, res) => {
   try {
@@ -52,38 +87,4 @@ router.get("/players/:idTeam", async (req, res) => {
   }
 });
 
-// Get team details by team name
-router.get("/:teamName", async (req, res) => {
-  try {
-    const encodedName = encodeURIComponent(req.params.teamName);
-    const response = await axios.get(
-      `${Base_URL}/searchteams.php?t=${encodedName}`
-    );
-    const team = response.data.teams?.[0];
-    if (!team) {
-      res.status(404).json({
-        error: "Team not found",
-      });
-    }
-      res.status(200).json({
-        teamId: team.idTeam,
-        teamName: team.strTeam,
-        teamBadge: team.strBadge,
-        teamLogo: team.strLogo,
-        formedYear: team.intFormedYear,
-        stadium: team.strStadium,
-        city: team.strLocation,
-        website: team.strWebsite,
-        facebook: team.strFacebook,
-        instagram: team.strInstagram,
-        twitter: team.strTwitter,
-        description: team.strDescriptionEN,
-      });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      error: "Failed to fetch team details",
-    });
-  }
-});
 module.exports = router;
