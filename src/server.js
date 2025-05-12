@@ -5,6 +5,8 @@ const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler"); // Error handling middleware
 const userRoutes = require("./routes/user"); // User routes
 const teamRoutes = require("./routes/teams"); // User routes
+const postRoutes = require("./routes/posts"); // Post routes
+const replyRoutes = require("./routes/reply"); // Reply routes
 const favoriteRoutes = require("./routes/favorites")
 
 dotenv.config(); // Load environment variables
@@ -29,6 +31,8 @@ app.get("/api/ping", (req, res) => {
 
 app.use("/api/user", userRoutes); // User routes setup
 app.use("/api/teams", teamRoutes);
+app.use("/api/posts", postRoutes); // Post routes setup
+app.use("/api/replies", replyRoutes); // Reply routes setup
 app.use("/api/favorites", favoriteRoutes);
 
 // Start the server
