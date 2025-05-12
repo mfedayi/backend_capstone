@@ -59,7 +59,7 @@ router.get("/:teamName", async (req, res) => {
     const response = await axios.get(
       `${Base_URL}/searchteams.php?t=${encodedName}`
     );
-    const team = await response.data.teams?.[0];
+    const team = response.data.teams?.[0];
     if (!team) {
       res.status(404).json({
         error: "Team not found",
