@@ -159,6 +159,32 @@ const updateUser = async (req, res, next) => {
   }
 };
 
+const updateMe = async (req, res, next) => {
+  try {
+    const { email, firstname, lastname, username } = req.body;
+
+    if (!firstname && !lastname && !email && !username) {
+      return res.status(400).json({ error: "No update fields provided." });
+    }
+    const updatedMe = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        email,
+        username,
+        firstname,
+        lastname,
+      },
+    });
+
+    res.json(updatedMe);
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    next(error);
+  }
+};
+
 const deleteSingleUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -182,4 +208,5 @@ module.exports = {
   getUserbyId,
   updateUser,
   deleteSingleUser,
+  updateMe,
 };
