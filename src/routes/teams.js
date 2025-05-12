@@ -65,6 +65,7 @@ router.get("/players/:teamName", async (req, res) => {
 
     const soccerKeywords = ["FC", "SC", "United", "City", "Athletic", "Club"]; // Keywords to check for soccer teams
     if (soccerKeywords.some((keyword) => teamName.includes(keyword))) {
+      console.log("Soccer team detected:", teamName); // Log the soccer team detection
       return res.status(400).json({
         error: "This API does not support soccer teams.",
       });
@@ -77,8 +78,10 @@ router.get("/players/:teamName", async (req, res) => {
     );
 
     const team = response.data.teams?.[0]; // Get the first team from the response
+    console.log("Team Data:", team); // Log the team data for debugging
 
-    if (!team) {
+    if (!team || !team.strLeague.includes("NBA")) {
+      console.log("No NBA team found with the name:", teamName); // Log if no NBA team is found
       return res.status(404).json({
         error: "No team found with that name",
       });
