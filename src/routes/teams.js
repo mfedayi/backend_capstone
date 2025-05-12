@@ -57,20 +57,45 @@ router.get("/:teamName", async (req, res) => {
   }
 });
 
-// Get team roster by team ID
-router.get("/players/:idTeam", async (req, res) => {
+// Get team roster by team name
+router.get("/players/:teamName", async (req, res) => {
   try {
-    const { idTeam } = req.params; // Get the team ID from the request parameters
-    const response = await axios.get( 
-      `${Base_URL}/lookup_all_players.php?id=${idTeam}` 
-    );
-    const players = response.data?.player; // Extract the players from the response
+    const { teamName } = req.params; // Get the team name from the request parameters
+    console.log("Team Name:", teamName); // Log the team name for debugging
 
-    if (!players) {
-      return res.status(404).json({
-        error: "No players found for this team"
+    const soccerKeywords = ["FC", "SC", "United", "City", "Athletic", "Club"]; // Keywords to check for soccer teams
+    if (soccerKeywords.some((keyword) => teamName.includes(keyword))) {
+      return res.status(400).json({
+        error: "This API does not support soccer teams.",
       });
     }
+
+    //Fetch the team details using team name
+    const encodedName = encodeURIComponent(teamName); // Encode the team name for the URL
+    const response = await axios.get( 
+      `${Base_URL}/searchteams.php?t=${encodedName}` 
+    );
+
+    const team = response.data.teams?.[0]; // Get the first team from the response
+
+    if (!team) {
+      return res.status(404).json({
+        error: "No team found with that name",
+      });
+    }
+
+    // Fetch the team roster using the team ID
+    const playerResponse = await axios.get(
+      `${Base_URL}/lookup_all_players.php?id=${team.idTeam}` // Use the team ID to fetch players
+    );
+    const players = playerResponse.data?.player; // Get the players from the response
+    if (!players) {
+      return res.status(404).json({
+        error: "No players found for this team",
+      });
+    }
+
+    // Map player data to extract relevant information
     const formattedPlayers = players.map((player) => ({ // Extract relevant player information
       idPlayer: player.idPlayer,
       name: player.strPlayer,
