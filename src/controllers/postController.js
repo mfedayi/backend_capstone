@@ -51,8 +51,51 @@ const getAllPosts = async (req, res, next) => {
     next(error);
   }
 };
+const softDeleteOwnPost = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user.id; // From isLoggedIn middleware
 
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found." });
+    }
+
+    if (post.userId !== userId) {
+      return res.status(403).json({ error: "You are not authorized to delete this post." });
+    }
+
+    // Soft delete: Update content
+    const updatedPost = await prisma.post.update({
+      where: { id: postId },
+      data: {
+        content: "[deleted by user]",
+        // Optionally, you could add an isDeleted flag or nullify userId
+      },
+    });
+
+    res.status(200).json({ message: "Post content marked as deleted.", post: updatedPost });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const adminDeletePost = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+    // Prisma will cascade delete replies if the relation is set up for it (default for required relations)
+    await prisma.post.delete({ where: { id: postId } });
+    res.status(200).json({ message: "Post and its replies permanently deleted by admin." });
+  } catch (error) {
+    next(error); // Handle Prisma P2025 (Record to delete does not exist) if needed
+  }
+};
 module.exports = {
   addPost,
   getAllPosts,
+  softDeleteOwnPost,
+  adminDeletePost,
 };
