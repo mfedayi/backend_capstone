@@ -33,7 +33,7 @@ const registerUser = async (req, res, next) => {
       data: { username, email, password: hashedPassword, firstname, lastname },
     });
 
-    const token = createToken({ id: user.id });
+    const token = createToken({ id: user.id});
     res.json({ token });
   } catch (error) {
     next(error);
@@ -59,7 +59,7 @@ const loginUser = async (req, res, next) => {
       return res.status(400).json({ error: "Email And Or Password Invalid" });
     }
 
-    const token = createToken({ id: user.id });
+    const token = createToken({ id: user.id, isAdmin: user.isAdmin });
     res.json({ token });
   } catch (error) {
     next(error);
@@ -76,6 +76,7 @@ const getMe = async (req, res, next) => {
         username: true,
         firstname: true,
         lastname: true,
+        isAdmin: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -100,6 +101,7 @@ const getAllUsers = async (req, res, next) => {
         username: true,
         firstname: true,
         lastname: true,
+        isAdmin: true,
         createdAt: true,
         updatedAt: true,
       },

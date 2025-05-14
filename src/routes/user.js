@@ -11,17 +11,18 @@ const {
   deleteSingleUser,
 } = require("../controllers/userController");
 const isLoggedIn = require("../middleware/isLoggedIn");
+const isAdmin = require("../middleware/isAdmin");
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/me", isLoggedIn, getMe);
-router.get("/", isLoggedIn, getAllUsers);
+router.get("/", isLoggedIn, isAdmin,  getAllUsers);
 router.patch("/me", isLoggedIn, updateMe);
 router
   .route("/:id")
-  .get(isLoggedIn, getUserbyId)
-  .put(isLoggedIn, updateUser) // Handles full updates
-  .patch(isLoggedIn, updateUser) // Add PATCH handler, potentially using the same controller
-  .delete(isLoggedIn, deleteSingleUser);
+  .get(isLoggedIn, isAdmin, getUserbyId)
+  .put(isLoggedIn, isAdmin, updateUser) // Handles full updates
+  .patch(isLoggedIn, isAdmin, updateUser) // Add PATCH handler, potentially using the same controller
+  .delete(isLoggedIn, isAdmin, deleteSingleUser);
 
 module.exports = router;
