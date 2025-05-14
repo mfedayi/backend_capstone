@@ -21,10 +21,10 @@ const addReply = async (req, res, next) => {
     next(error);
   }
 };
-const deleteOwnReply = async (req, res, next) => {
+const softDeleteOwnReply = async (req, res, next) => {
   try {
     const { replyId } = req.params;
-    const userId = req.user.id; 
+    const userId = req.user.id;
 
     const replyToDelete = await prisma.reply.findUnique({
       where: { id: replyId },
@@ -35,45 +35,39 @@ const deleteOwnReply = async (req, res, next) => {
     }
 
     if (replyToDelete.userId !== userId) {
-      return res.status(403).json({ error: "You can only delete your own replies." });
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to delete this reply." });
     }
 
-    await prisma.reply.delete({
+    const updatedReply = await prisma.reply.update({
       where: { id: replyId },
+      data: {
+        content: "[reply has been deleted by the user]",
+      },
     });
 
-    res.status(200).json({ message: "Reply deleted successfully." });
-    } catch (error) {
+    res.status(200).json({
+      message: "Reply content marked as deleted.",
+      reply: updatedReply,
+    });
+  } catch (error) {
     next(error);
   }
 };
 
-// const adminDeleteReply = async (req, res, next) => {
-//   try {
-//     const { replyId } = req.params;
-//     await prisma.reply.delete({
+const adminDeleteReply = async (req, res, next) => {
+  try {
+    const { replyId } = req.params;
+    await prisma.reply.delete({ where: { id: replyId } });
+    res.status(200).json({ message: "Reply deleted by admin." });
+  } catch (error) {
+    next(error);
+  }
+};
 
-//     const reply = await prisma.reply.findUnique({
-//       where: { id: replyId },
-//     });
-
-//     if (!reply) {
-//       return res.status(404).json({ error: "Reply not found." });
-//     }
-
-//     if (reply.userId !== userId) {
-//       return res.status(403).json({ error: "You can only delete your own replies." });
-//     }
-
-//     await prisma.reply.delete({
-//       where: { id: replyId },
-//     });
-
-//     res.status(200).json({ message: "Reply deleted successfully." });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 module.exports = {
   addReply,
+  softDeleteOwnReply,
+  adminDeleteReply,
 };
