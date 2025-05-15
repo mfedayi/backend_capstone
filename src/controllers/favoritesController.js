@@ -16,7 +16,8 @@ const getFavorites = async (req, res, next) => {
       "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=NBA"
     );
     console.log("All teams data:", allTeams.data); // Log the response data for debugging
-    const favTeams = allTeams.teams.data.filter((team) => teamIds.includes(team.idTeam)); // filter the teams based on the teamIds from favorites
+    const favTeams = allTeams.data.teams.filter((team) => teamIds.includes(parseInt(team.idTeam))
+  ); // filter the teams based on the teamIds from favorites
 
     if (!favTeams || favTeams.length === 0) {
       return res.status(400).json({ error: "Favorite do not match" });
