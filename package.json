@@ -10,7 +10,9 @@
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
     "reset": "prisma migrate reset",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "start": "node index.js",
+    "debug": "nodemon --inspect server.js"
   },
   "repository": {
     "type": "git",

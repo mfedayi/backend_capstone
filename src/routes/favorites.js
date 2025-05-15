@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
-
 const {
   getFavorites,
   addFavoriteTeam,
+  removeFavoriteTeam,
 } = require("../controllers/favoritesController");
 const isLoggedIn = require("../middleware/isLoggedIn");
 
 router.get("/", isLoggedIn, getFavorites);
 router.post("/:teamId", isLoggedIn, addFavoriteTeam);
+router.delete("/:teamId", isLoggedIn, removeFavoriteTeam);
 
 module.exports = router;
