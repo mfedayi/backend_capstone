@@ -2,7 +2,7 @@ const { prisma } = require("../utils/common");
 const addReply = async (req, res, next) => {
   try {
     const { postId } = req.params;
-    const { content } = req.body;
+    const { content, parentId } = req.body;
     const userId = req.user.id;
 
     if (!content || content.trim() === "") {
@@ -14,6 +14,7 @@ const addReply = async (req, res, next) => {
         content,
         userId,
         postId,
+        parentId,
       },
     });
     res.status(201).json(reply);

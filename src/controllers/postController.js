@@ -22,24 +22,38 @@ const getAllPosts = async (req, res, next) => {
   try {
     const posts = await prisma.post.findMany({
       orderBy: {
-        createdAt: 'desc', // Show newest posts first
+        createdAt: "desc", // Show newest posts first
       },
       include: {
-        user: { 
+        user: {
           select: {
             id: true,
             username: true,
           },
         },
-        replies: { 
+        replies: {
+          where: { parentId: null },
           orderBy: {
-            createdAt: 'asc', 
+            createdAt: "asc",
           },
           include: {
-            user: { 
+            user: {
               select: {
                 id: true,
                 username: true,
+              },
+            },
+            childReplies: {
+              orderBy: {
+                createdAt: "asc",
+              },
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                  },
+                },
               },
             },
           },
@@ -65,7 +79,9 @@ const softDeleteOwnPost = async (req, res, next) => {
     }
 
     if (post.userId !== userId) {
-      return res.status(403).json({ error: "You are not authorized to delete this post." });
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to delete this post." });
     }
 
     // Soft delete: Update content
@@ -77,7 +93,9 @@ const softDeleteOwnPost = async (req, res, next) => {
       },
     });
 
-    res.status(200).json({ message: "Post content marked as deleted.", post: updatedPost });
+    res
+      .status(200)
+      .json({ message: "Post content marked as deleted.", post: updatedPost });
   } catch (error) {
     next(error);
   }
@@ -88,7 +106,9 @@ const adminDeletePost = async (req, res, next) => {
     const { postId } = req.params;
     // Prisma will cascade delete replies if the relation is set up for it (default for required relations)
     await prisma.post.delete({ where: { id: postId } });
-    res.status(200).json({ message: "Post and its replies permanently deleted by admin." });
+    res
+      .status(200)
+      .json({ message: "Post and its replies permanently deleted by admin." });
   } catch (error) {
     next(error); // Handle Prisma P2025 (Record to delete does not exist) if needed
   }
