@@ -44,6 +44,7 @@ const getAllPosts = async (req, res, next) => {
               },
             },
             childReplies: {
+              // Level 1 children of top-level replies
               orderBy: {
                 createdAt: "asc",
               },
@@ -52,6 +53,62 @@ const getAllPosts = async (req, res, next) => {
                   select: {
                     id: true,
                     username: true,
+                  },
+                },
+                childReplies: {
+                  // Level 2 children (children of Level 1)
+                  orderBy: {
+                    createdAt: "asc",
+                  },
+                  include: {
+                    user: {
+                      select: {
+                        id: true,
+                        username: true,
+                      },
+                    },
+                    childReplies: {
+                      // Level 3 children (children of Level 2)
+                      orderBy: {
+                        createdAt: "asc",
+                      },
+                      include: {
+                        user: {
+                          select: {
+                            id: true,
+                            username: true,
+                          },
+                        },
+                        childReplies: {
+                          // Level 4 children (children of Level 3)
+                          orderBy: {
+                            createdAt: "asc",
+                          },
+                          include: {
+                            user: {
+                              select: {
+                                id: true,
+                                username: true,
+                              },
+                            },
+                            childReplies: {
+                              // Level 5 children (children of Level 4)
+                              orderBy: {
+                                createdAt: "asc",
+                              },
+                              include: {
+                                user: {
+                                  select: {
+                                    id: true,
+                                    username: true,
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },
@@ -89,7 +146,6 @@ const softDeleteOwnPost = async (req, res, next) => {
       where: { id: postId },
       data: {
         content: "[deleted by user]",
-        // Optionally, you could add an isDeleted flag or nullify userId
       },
     });
 
@@ -104,13 +160,12 @@ const softDeleteOwnPost = async (req, res, next) => {
 const adminDeletePost = async (req, res, next) => {
   try {
     const { postId } = req.params;
-    // Prisma will cascade delete replies if the relation is set up for it (default for required relations)
     await prisma.post.delete({ where: { id: postId } });
     res
       .status(200)
       .json({ message: "Post and its replies permanently deleted by admin." });
   } catch (error) {
-    next(error); // Handle Prisma P2025 (Record to delete does not exist) if needed
+    next(error);
   }
 };
 module.exports = {
