@@ -54,7 +54,7 @@ model Reply {
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id])
   userId      String
-  post        Post     @relation(fields: [postId], references: [id])
+  post        Post     @relation(fields: [postId], references: [id],  onDelete: Cascade)
   postId      String
   parentId    String?
   parentReply Reply? @relation("NestedReplies", fields: [parentId], references: [id], onDelete: Cascade) 
