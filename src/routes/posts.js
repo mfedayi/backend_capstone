@@ -13,5 +13,5 @@ const isAdmin = require("../middleware/isAdmin");
 router.get("/", getAllPosts);
 router.post("/", isLoggedIn, addPost);
 router.patch("/:postId/soft-delete", isLoggedIn, softDeleteOwnPost);
-router.delete("/:postId", isLoggedIn, isAdmin, adminDeletePost);
+router.delete("/admin/:postId", isLoggedIn, isAdmin, adminDeletePost);
 module.exports = router;
