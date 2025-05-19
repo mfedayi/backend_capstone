@@ -6,7 +6,7 @@ const addReply = async (req, res, next) => {
     const userId = req.user.id;
 
     if (!content || content.trim() === "") {
-      return res.status(400).json({ error: "Rely content cannot be empty." });
+      return res.status(400).json({ error: "Reply content cannot be empty." });
     }
 
     const reply = await prisma.reply.create({
