@@ -67,8 +67,42 @@ const adminDeleteReply = async (req, res, next) => {
   }
 };
 
+const updateReply = async (req, res, next) => {
+  try {
+    const { replyId } = req.params;
+    const { content } = req.body;
+    const userId = req.user.id;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Reply content cannot be empty." });
+    }
+
+    const reply = await prisma.reply.findUnique({
+      where: { id: replyId },
+    });
+
+    if (!reply) {
+      return res.status(404).json({ error: "Reply not found." });
+    }
+
+    if (reply.userId !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to edit this reply." });
+    }
+
+    const updatedReply = await prisma.reply.update({
+      where: { id: replyId },
+      data: { content },
+    });
+    res.json(updatedReply);
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   addReply,
   softDeleteOwnReply,
   adminDeleteReply,
+  updateReply,
 };
