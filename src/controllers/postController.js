@@ -168,9 +168,45 @@ const adminDeletePost = async (req, res, next) => {
     next(error);
   }
 };
+
+const updatePost = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+    const { content } = req.body;
+    const userId = req.user.id;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Post content is required." });
+    }
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found." });
+    }
+
+    if (post.userId !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to update this post." });
+    }
+
+    const updatedPost = await prisma.post.update({
+      where: { id: postId },
+      data: { content },
+    });
+
+    res.json(updatedPost);
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   addPost,
   getAllPosts,
   softDeleteOwnPost,
   adminDeletePost,
+  updatePost,
 };
