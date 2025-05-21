@@ -8,6 +8,7 @@ const teamRoutes = require("./routes/teams"); // Team routes
 const postRoutes = require("./routes/posts"); // Post routes
 const replyRoutes = require("./routes/reply"); // Reply routes
 const favoriteRoutes = require("./routes/favorites")
+const newsRoutes = require("./routes/team_news")
 
 dotenv.config(); // Load environment variables
 
@@ -34,6 +35,7 @@ app.use("/api/teams", teamRoutes);
 app.use("/api/posts", postRoutes); // Post routes setup
 app.use("/api/replies", replyRoutes); // Reply routes setup
 app.use("/api/favorites", favoriteRoutes);
+app.use("/api/news", newsRoutes)
 
 // Start the server
 const PORT = process.env.PORT || 3000;

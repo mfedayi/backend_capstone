@@ -15,20 +15,20 @@ const getFavorites = async (req, res, next) => {
     const allTeams = await axios.get(
       "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=NBA"
     );
-    console.log("All teams data:", allTeams.data); // Log the response data for debugging
+   
     const favTeams = allTeams.data.teams.filter((team) => teamIds.includes(parseInt(team.idTeam))
   ); // filter the teams based on the teamIds from favorites
 
     if (!favTeams || favTeams.length === 0) {
       return res.status(400).json({ error: "Favorite do not match" });
     }
-    console.log("Favorite teams:", favTeams); // Log the favorite teams for debugging
+  
     const favTeamData = favTeams.map((team) => ({
       teamId: team.idTeam,
       teamName: team.strTeam,
       teamLogo: team.strBadge,
     }));
-    console.log("Favorite teams data:", favTeamData); // Log the favorite teams data for debugging  
+    
     res.json(favTeamData);
   } catch (error) {
     next(error);
@@ -38,7 +38,7 @@ const getFavorites = async (req, res, next) => {
 const addFavoriteTeam = async (req, res, next) => {
   try {
     const { teamId } = req.params; // Get the teamId from the request parameters
-    console.log("Incoming data:", req.params); // Log the incoming data for debugging
+
 
     const existing = await prisma.favorite.findFirst({
       where: {

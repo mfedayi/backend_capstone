@@ -8,7 +8,7 @@ const {
   updateReply,
 } = require("../controllers/replyController");
 const isLoggedIn = require("../middleware/isLoggedIn");
-const isAdmin = require("../middleware/isAdmin")
+const isAdmin = require("../middleware/isAdmin");
 
 router.post("/posts/:postId/replies", isLoggedIn, addReply);
 router.patch("/:replyId/soft-delete", isLoggedIn, softDeleteOwnReply); // User deletes own reply
