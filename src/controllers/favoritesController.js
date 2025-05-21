@@ -1,4 +1,4 @@
-const axios = require("axios"); // Import axios to make API requests
+const axios = require("axios"); 
 const { prisma } = require("../utils/common");
 
 const getFavorites = async (req, res, next) => {
@@ -11,24 +11,24 @@ const getFavorites = async (req, res, next) => {
       return res.status(404).json({ error: "favorite teams does not exist" });
     }
 
-    const teamIds = favorites.map((fav) => fav.teamId); // get all teamIds from the favorites model
+    const teamIds = favorites.map((fav) => fav.teamId); 
     const allTeams = await axios.get(
       "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=NBA"
     );
-    console.log("All teams data:", allTeams.data); // Log the response data for debugging
+    console.log("All teams data:", allTeams.data);
     const favTeams = allTeams.data.teams.filter((team) => teamIds.includes(parseInt(team.idTeam))
-  ); // filter the teams based on the teamIds from favorites
+  ); 
 
     if (!favTeams || favTeams.length === 0) {
       return res.status(400).json({ error: "Favorite do not match" });
     }
-    console.log("Favorite teams:", favTeams); // Log the favorite teams for debugging
+    console.log("Favorite teams:", favTeams); 
     const favTeamData = favTeams.map((team) => ({
       teamId: team.idTeam,
       teamName: team.strTeam,
       teamLogo: team.strBadge,
     }));
-    console.log("Favorite teams data:", favTeamData); // Log the favorite teams data for debugging  
+    console.log("Favorite teams data:", favTeamData); 
     res.json(favTeamData);
   } catch (error) {
     next(error);
@@ -37,13 +37,13 @@ const getFavorites = async (req, res, next) => {
 
 const addFavoriteTeam = async (req, res, next) => {
   try {
-    const { teamId } = req.params; // Get the teamId from the request parameters
-    console.log("Incoming data:", req.params); // Log the incoming data for debugging
+    const { teamId } = req.params;
+    console.log("Incoming data:", req.params); 
 
     const existing = await prisma.favorite.findFirst({
       where: {
         userId: req.user.id,
-        teamId: parseInt(teamId), // Parse the teamId to an integer
+        teamId: parseInt(teamId), 
       },
     });
 
@@ -56,13 +56,13 @@ const addFavoriteTeam = async (req, res, next) => {
     const favorite = await prisma.favorite.create({
       data: {
         userId: req.user.id,
-        teamId: parseInt(teamId), // Parse the teamId to an integer
+        teamId: parseInt(teamId), 
       },
     });
 
     res.status(201).json(favorite);
   } catch (error) {
-    console.error("Error adding favorite team:", error); // Log the error for debugging
+    console.error("Error adding favorite team:", error); 
     next(error);
   }
 };
@@ -75,7 +75,7 @@ const removeFavoriteTeam = async (req, res, next) => {
       where: {
         userId_teamId: {
           userId: req.user.id,
-          teamId: parseInt(teamId), // Parse the teamId to an integer
+          teamId: parseInt(teamId), 
         },
       },
     });
@@ -92,8 +92,46 @@ const removeFavoriteTeam = async (req, res, next) => {
   }
 };
 
+const getUserPublicFavorites = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const favorites = await prisma.favorite.findMany({
+      where: { userId: userId },
+    });
+
+    if (!favorites || favorites.length === 0) {
+      return res.json([]);
+    }
+
+    const teamIds = favorites.map((fav) => fav.teamId);
+    const allTeamsResponse = await axios.get(
+      "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=NBA"
+    );
+
+    if (!allTeamsResponse.data || !allTeamsResponse.data.teams) {
+      console.error("Unexpected response from external sports API for public favorites");
+      return res.status(500).json({ error: "Could not fetch team data." });
+    }
+
+    const favTeams = allTeamsResponse.data.teams.filter((team) =>
+      teamIds.includes(parseInt(team.idTeam))
+    );
+
+    const favTeamData = favTeams.map((team) => ({
+      teamId: team.idTeam,
+      teamName: team.strTeam,
+      teamLogo: team.strTeamBadge || team.strBadge, 
+    }));
+    
+    res.json(favTeamData);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getFavorites,
   addFavoriteTeam,
   removeFavoriteTeam,
+  getUserPublicFavorites,
 };

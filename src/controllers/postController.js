@@ -22,7 +22,7 @@ const getAllPosts = async (req, res, next) => {
   try {
     const posts = await prisma.post.findMany({
       orderBy: {
-        createdAt: "desc", // Show newest posts first
+        createdAt: "desc", 
       },
       include: {
         user: {
@@ -125,7 +125,7 @@ const getAllPosts = async (req, res, next) => {
 const softDeleteOwnPost = async (req, res, next) => {
   try {
     const { postId } = req.params;
-    const userId = req.user.id; // From isLoggedIn middleware
+    const userId = req.user.id; 
 
     const post = await prisma.post.findUnique({
       where: { id: postId },

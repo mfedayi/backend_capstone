@@ -1,7 +1,6 @@
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack); //Log error stack from terminal
+  console.error(err.stack); 
 
-  // Check if the error is a validation error
   res.status(500).json({
     error: err.message || "Internal Server Error",
   });

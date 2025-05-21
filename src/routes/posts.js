@@ -14,6 +14,6 @@ const isAdmin = require("../middleware/isAdmin");
 router.get("/", getAllPosts);
 router.post("/", isLoggedIn, addPost);
 router.patch("/:postId/soft-delete", isLoggedIn, softDeleteOwnPost);
-router.patch("/:postId", isLoggedIn, updatePost); // New route for editing a post
+router.patch("/:postId", isLoggedIn, updatePost); 
 router.delete("/:postId", isLoggedIn, isAdmin, adminDeletePost);
 module.exports = router;
