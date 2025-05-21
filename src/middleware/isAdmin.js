@@ -1,7 +1,7 @@
 const isAdmin = (req, res, next) => {
   try {
-    console.log("Decoded user from token:", req.user);
     
+
     if (req.user && req.user?.isAdmin === true) {
        
       return next(); // if user is admin then go to next stepp
