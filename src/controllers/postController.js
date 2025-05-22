@@ -20,8 +20,8 @@ const addPost = async (req, res, next) => {
 
 const getAllPosts = async (req, res, next) => {
   try {
-    const userId = req.user?.id; 
-    let posts = await prisma.post.findMany({
+    const currentUserId = req.user?.id; // Get current user's ID if logged in
+    const rawPosts = await prisma.post.findMany({
       orderBy: {
         createdAt: "desc", 
       },
@@ -161,24 +161,34 @@ const getAllPosts = async (req, res, next) => {
       },
     });
 
-    // Process posts to add userVote
-    if (userId) {
-      posts = posts.map(post => {
-        const userVote = post.votes.find(vote => vote.userId === userId);
-        const processedReplies = post.replies.map(reply => {
-            const userReplyVote = reply.votes.find(vote => vote.userId === userId);
-            // Recursively process child replies if necessary, or handle in frontend
-            return { ...reply, userVote: userReplyVote ? userReplyVote.type : null, votes: undefined };
-        });
-        return { 
-          ...post, 
-          userVote: userVote ? userVote.type : null, 
-          votes: undefined, // Remove the full votes array from the final output
-          replies: processedReplies 
-        }; 
-      });
-    }
+    // Helper function to process votes for posts and replies recursively
+    const processVotes = (item) => {
+      let userVoteType = null;
+      // item.votes will exist due to the 'include' in the Prisma query
+      if (currentUserId && item.votes) {
+        const voteRecord = item.votes.find(vote => vote.userId === currentUserId);
+        if (voteRecord) {
+          userVoteType = voteRecord.type;
+        }
+      }
+      
+      const processedItem = { 
+        ...item, 
+        userVote: userVoteType, // Will be null if no vote or user not logged in
+        // likeCount and dislikeCount are already on the item from Prisma
+      };
+      delete processedItem.votes; // Remove the full votes array from the final output
 
+      if (processedItem.replies) { // For top-level replies of a post
+        processedItem.replies = processedItem.replies.map(reply => processVotes(reply));
+      }
+      if (processedItem.childReplies) { // For nested replies
+        processedItem.childReplies = processedItem.childReplies.map(child => processVotes(child));
+      }
+      return processedItem;
+    };
+
+    const posts = rawPosts.map(post => processVotes(post));
     res.json(posts);
   } catch (error) {
     next(error);

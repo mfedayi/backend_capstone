@@ -16,6 +16,6 @@ router.get("/", getAllPosts);
 router.post("/", isLoggedIn, addPost);
 router.patch("/:postId/soft-delete", isLoggedIn, softDeleteOwnPost);
 router.patch("/:postId", isLoggedIn, updatePost); 
-router.post("/:postId/vote", isLoggedIn, votePost); 
+router.post("/:postId/vote", isLoggedIn, votePost);
 router.delete("/:postId", isLoggedIn, isAdmin, adminDeletePost);
 module.exports = router;

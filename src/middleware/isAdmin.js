@@ -1,9 +1,6 @@
 const isAdmin = (req, res, next) => {
   try {
-    
-
     if (req.user && req.user?.isAdmin === true) {
-       
       return next(); 
     } else {
       return res.status(403).json({ error: "Admin access required." });
