@@ -20,7 +20,8 @@ const addPost = async (req, res, next) => {
 
 const getAllPosts = async (req, res, next) => {
   try {
-    const posts = await prisma.post.findMany({
+    const userId = req.user?.id; 
+    let posts = await prisma.post.findMany({
       orderBy: {
         createdAt: "desc", 
       },
@@ -30,6 +31,12 @@ const getAllPosts = async (req, res, next) => {
             id: true,
             username: true,
           },
+        },
+        votes: { // Include votes to determine current user's vote
+          select: {
+            userId: true,
+            type: true,
+          }
         },
         replies: {
           where: { parentId: null },
@@ -43,6 +50,12 @@ const getAllPosts = async (req, res, next) => {
                 username: true,
               },
             },
+            votes: { // Include votes for replies
+              select: {
+                userId: true,
+                type: true,
+              }
+            },
             childReplies: {
               // Level 1 children of top-level replies
               orderBy: {
@@ -54,6 +67,12 @@ const getAllPosts = async (req, res, next) => {
                     id: true,
                     username: true,
                   },
+                },
+                votes: {
+                  select: {
+                    userId: true,
+                    type: true,
+                  }
                 },
                 childReplies: {
                   // Level 2 children (children of Level 1)
@@ -67,6 +86,12 @@ const getAllPosts = async (req, res, next) => {
                         username: true,
                       },
                     },
+                    votes: {
+                      select: {
+                        userId: true,
+                        type: true,
+                      }
+                    },
                     childReplies: {
                       // Level 3 children (children of Level 2)
                       orderBy: {
@@ -78,6 +103,12 @@ const getAllPosts = async (req, res, next) => {
                             id: true,
                             username: true,
                           },
+                        },
+                        votes: {
+                          select: {
+                            userId: true,
+                            type: true,
+                          }
                         },
                         childReplies: {
                           // Level 4 children (children of Level 3)
@@ -91,6 +122,12 @@ const getAllPosts = async (req, res, next) => {
                                 username: true,
                               },
                             },
+                            votes: {
+                              select: {
+                                userId: true,
+                                type: true,
+                              }
+                            },
                             childReplies: {
                               // Level 5 children (children of Level 4)
                               orderBy: {
@@ -102,6 +139,12 @@ const getAllPosts = async (req, res, next) => {
                                     id: true,
                                     username: true,
                                   },
+                                },
+                                votes: {
+                                  select: {
+                                    userId: true,
+                                    type: true,
+                                  }
                                 },
                               },
                             },
@@ -117,6 +160,25 @@ const getAllPosts = async (req, res, next) => {
         },
       },
     });
+
+    // Process posts to add userVote
+    if (userId) {
+      posts = posts.map(post => {
+        const userVote = post.votes.find(vote => vote.userId === userId);
+        const processedReplies = post.replies.map(reply => {
+            const userReplyVote = reply.votes.find(vote => vote.userId === userId);
+            // Recursively process child replies if necessary, or handle in frontend
+            return { ...reply, userVote: userReplyVote ? userReplyVote.type : null, votes: undefined };
+        });
+        return { 
+          ...post, 
+          userVote: userVote ? userVote.type : null, 
+          votes: undefined, // Remove the full votes array from the final output
+          replies: processedReplies 
+        }; 
+      });
+    }
+
     res.json(posts);
   } catch (error) {
     next(error);
@@ -203,10 +265,83 @@ const updatePost = async (req, res, next) => {
     next(error);
   }
 };
+
+const votePost = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+    const { voteType } = req.body; // 'LIKE' or 'DISLIKE'
+    const userId = req.user.id;
+
+    if (!["LIKE", "DISLIKE"].includes(voteType)) {
+      return res.status(400).json({ error: "Invalid vote type." });
+    }
+
+    const existingVote = await prisma.postVote.findUnique({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      let likeIncrement = 0;
+      let dislikeIncrement = 0;
+
+      if (existingVote) {
+        // User is changing their vote or removing it
+        if (existingVote.type === voteType) {
+          // Removing vote
+          await tx.postVote.delete({ where: { id: existingVote.id } });
+          if (voteType === "LIKE") likeIncrement = -1;
+          else dislikeIncrement = -1;
+        } else {
+          // Changing vote type
+          await tx.postVote.update({
+            where: { id: existingVote.id },
+            data: { type: voteType },
+          });
+          if (voteType === "LIKE") {
+            likeIncrement = 1;
+            dislikeIncrement = -1; // Was a dislike before
+          } else {
+            dislikeIncrement = 1;
+            likeIncrement = -1; // Was a like before
+          }
+        }
+      } else {
+        // New vote
+        await tx.postVote.create({
+          data: {
+            postId,
+            userId,
+            type: voteType,
+          },
+        });
+        if (voteType === "LIKE") likeIncrement = 1;
+        else dislikeIncrement = 1;
+      }
+
+      const updatedPost = await tx.post.update({
+        where: { id: postId },
+        data: {
+          likeCount: { increment: likeIncrement },
+          dislikeCount: { increment: dislikeIncrement },
+        },
+        select: { id: true, likeCount: true, dislikeCount: true } // Select only necessary fields
+      });
+      res.json({ ...updatedPost, userVote: existingVote && existingVote.type === voteType ? null : voteType });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   addPost,
   getAllPosts,
   softDeleteOwnPost,
   adminDeletePost,
   updatePost,
+  votePost,
 };
