@@ -1,10 +1,7 @@
 const isAdmin = (req, res, next) => {
   try {
-    
-
     if (req.user && req.user?.isAdmin === true) {
-       
-      return next(); // if user is admin then go to next stepp
+      return next(); 
     } else {
       return res.status(403).json({ error: "Admin access required." });
     }

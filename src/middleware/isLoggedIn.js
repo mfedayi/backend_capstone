@@ -9,7 +9,7 @@ const isLoggedIn = (req, res, next) => {
     }
     const token = authHeader?.replace("Bearer ", "");
     const decodedToken = jwt.verify(token, SECRET);
-    req.user = decodedToken; //Attach payload to req.user
+    req.user = decodedToken; 
     next();
   } catch (err) {
     return res.status(400).json({ error: "Unauthorized or invalid user" });

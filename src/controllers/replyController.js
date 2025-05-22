@@ -100,9 +100,82 @@ const updateReply = async (req, res, next) => {
     next(error);
   }
 };
+
+const voteReply = async (req, res, next) => {
+  try {
+    const { replyId } = req.params;
+    const { voteType } = req.body; 
+    const userId = req.user.id;
+
+    if (!["LIKE", "DISLIKE"].includes(voteType)) {
+      return res.status(400).json({ error: "Invalid vote type." });
+    }
+
+    const existingVote = await prisma.replyVote.findUnique({
+      where: {
+        replyId_userId: {
+          replyId,
+          userId,
+        },
+      },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      let likeIncrement = 0;
+      let dislikeIncrement = 0;
+
+      if (existingVote) {
+        if (existingVote.type === voteType) {
+          // Removing vote
+          await tx.replyVote.delete({ where: { id: existingVote.id } });
+          if (voteType === "LIKE") likeIncrement = -1;
+          else dislikeIncrement = -1;
+        } else {
+          // Changing vote type
+          await tx.replyVote.update({
+            where: { id: existingVote.id },
+            data: { type: voteType },
+          });
+          if (voteType === "LIKE") {
+            likeIncrement = 1;
+            dislikeIncrement = -1;
+          } else {
+            dislikeIncrement = 1;
+            likeIncrement = -1;
+          }
+        }
+      } else {
+        // New vote
+        await tx.replyVote.create({
+          data: {
+            replyId,
+            userId,
+            type: voteType,
+          },
+        });
+        if (voteType === "LIKE") likeIncrement = 1;
+        else dislikeIncrement = 1;
+      }
+
+      const updatedReply = await tx.reply.update({
+        where: { id: replyId },
+        data: {
+          likeCount: { increment: likeIncrement },
+          dislikeCount: { increment: dislikeIncrement },
+        },
+        select: { id: true, likeCount: true, dislikeCount: true }
+      });
+      res.json({ ...updatedReply, userVote: existingVote && existingVote.type === voteType ? null : voteType });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addReply,
   softDeleteOwnReply,
   adminDeleteReply,
   updateReply,
+  voteReply,
 };
