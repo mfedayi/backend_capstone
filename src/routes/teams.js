@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
+// Handles routes for fetching NBA team data from an external API.
 const Base_URL = "https://www.thesportsdb.com/api/v1/json/3";
 
-// Get all NBA teams
+// Route to get all NBA teams.
 router.get("/", async (req, res) => {
   try {
     const response = await axios.get(`${Base_URL}/search_all_teams.php?l=NBA`);
@@ -20,7 +21,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get team details by team name
+// Route to get team details by team name.
 router.get("/:teamName", async (req, res) => {
   try {
     const encodedName = encodeURIComponent(req.params.teamName);
@@ -54,7 +55,7 @@ router.get("/:teamName", async (req, res) => {
   }
 });
 
-// Get team roster by team name
+// Route to get team roster by team name.
 router.get("/players/:teamName", async (req, res) => {
   try {
     const { teamName } = req.params; // Get the team name from the request parameters

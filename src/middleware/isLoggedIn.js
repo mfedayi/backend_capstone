@@ -2,6 +2,7 @@ const SECRET = process.env.JWT_SECRET;
 const jwt = require("jsonwebtoken");
 
 const isLoggedIn = (req, res, next) => {
+  // Middleware to verify JWT token and attach user info to request object.
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer")) {
