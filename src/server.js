@@ -16,7 +16,24 @@ const app = express(); // Create an instance of express
 
 app.use(
   cors({
-    origin: /http:\/\/localhost:\d+$/, // reg expression to allow a dynamic Port
+    origin: function (origin, callback) {
+      console.log("CORS Origin:", origin); // Useful for debugging CORS issues
+      const allowedOrigins = [
+        "http://localhost:3000", // Your backend's own port
+        "http://localhost:5173", // Likely your frontend dev port
+        "https://fsa-cap.netlify.app",  // Your main Netlify deployment
+      ];
+      // Regex to match Netlify deploy preview URLs (e.g., deploy-preview-123--fsa-cap.netlify.app)
+      const netlifyPreviewRegex = /^https:\/\/[\w\d-]+--fsa-cap\.netlify\.app$/;
+      if (
+        !origin || // Allow requests with no origin (like server-to-server or tools like Postman)
+        allowedOrigins.includes(origin) ||
+        netlifyPreviewRegex.test(origin)
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
