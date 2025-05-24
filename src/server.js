@@ -16,7 +16,17 @@ const app = express(); // Create an instance of express
 
 app.use(
   cors({
-    origin: /http:\/\/localhost:\d+$/, // reg expression to allow a dynamic Port
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://fsa-cap.netlify.app", 
+      ];
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
