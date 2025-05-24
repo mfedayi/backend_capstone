@@ -17,15 +17,13 @@ const app = express(); // Create an instance of express
 app.use(
   cors({
     origin: function (origin, callback) {
+      console.log("CORS Origin:", origin);
       const allowedOrigins = [
         "http://localhost:3000",
         "http://localhost:5173",
         "https://fsa-cap.netlify.app",
       ];
-
-      const netlifyPreviewRegex =
-        /^https:\/\/[a-z0-9]+--fsa-cap\.netlify\.app$/;
-
+      const netlifyPreviewRegex = /^https:\/\/[\w\d-]+--fsa-cap\.netlify\.app$/;
       if (
         !origin ||
         allowedOrigins.includes(origin) ||
@@ -33,7 +31,6 @@ app.use(
       ) {
         return callback(null, true);
       }
-
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
