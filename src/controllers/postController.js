@@ -347,6 +347,27 @@ const votePost = async (req, res, next) => {
     next(error);
   }
 };
+
+// Gets all posts made by a specific user
+const getUserPosts = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const posts = await prisma.post.findMany({
+      where: { userId: userId },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        likeCount: true,
+        dislikeCount: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(posts);
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   addPost,
   getAllPosts,
@@ -354,4 +375,5 @@ module.exports = {
   adminDeletePost,
   updatePost,
   votePost,
+  getUserPosts,
 };
