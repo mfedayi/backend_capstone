@@ -1,5 +1,6 @@
 const { prisma } = require("../utils/common");
 const addPost = async (req, res, next) => {
+  // Adds a new post to the forum.
   try {
     const { content } = req.body;
 
@@ -19,6 +20,7 @@ const addPost = async (req, res, next) => {
 };
 
 const getAllPosts = async (req, res, next) => {
+  // Retrieves all posts from the forum, ordered by creation date (most recent first).
   try {
     const currentUserId = req.user?.id; // Get current user's ID if logged in
     const rawPosts = await prisma.post.findMany({
@@ -195,6 +197,7 @@ const getAllPosts = async (req, res, next) => {
   }
 };
 const softDeleteOwnPost = async (req, res, next) => {
+  // Soft deletes a post by marking its content as deleted.
   try {
     const { postId } = req.params;
     const userId = req.user.id; 
@@ -230,6 +233,7 @@ const softDeleteOwnPost = async (req, res, next) => {
 };
 
 const adminDeletePost = async (req, res, next) => {
+  // Permanently deletes a post and its replies (Admin only).
   try {
     const { postId } = req.params;
     await prisma.post.delete({ where: { id: postId } });
@@ -242,6 +246,7 @@ const adminDeletePost = async (req, res, next) => {
 };
 
 const updatePost = async (req, res, next) => {
+  // Updates the content of an existing post.
   try {
     const { postId } = req.params;
     const { content } = req.body;
@@ -277,6 +282,7 @@ const updatePost = async (req, res, next) => {
 };
 
 const votePost = async (req, res, next) => {
+  // Handles voting (like/dislike) on a post.
   try {
     const { postId } = req.params;
     const { voteType } = req.body; // 'LIKE' or 'DISLIKE'

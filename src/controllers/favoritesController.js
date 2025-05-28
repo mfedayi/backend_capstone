@@ -2,6 +2,7 @@ const axios = require("axios");
 const { prisma } = require("../utils/common");
 
 const getFavorites = async (req, res, next) => {
+  // Fetches the favorite teams for the currently logged-in user.
   try {
     const favorites = await prisma.favorite.findMany({
       where: { userId: req.user.id },
@@ -33,6 +34,7 @@ const getFavorites = async (req, res, next) => {
 };
 
 const addFavoriteTeam = async (req, res, next) => {
+  // Adds a team to the user's favorites.
   try {
     const { teamId } = req.params;
 
@@ -63,6 +65,7 @@ const addFavoriteTeam = async (req, res, next) => {
 };
 
 const removeFavoriteTeam = async (req, res, next) => {
+  // Removes a team from the user's favorites.
   try {
     const { teamId } = req.params;
 
@@ -88,6 +91,7 @@ const removeFavoriteTeam = async (req, res, next) => {
 };
 
 const getUserPublicFavorites = async (req, res, next) => {
+  // Fetches the favorite teams for a specific user (public profile).
   try {
     const { userId } = req.params;
     const favorites = await prisma.favorite.findMany({
