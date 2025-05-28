@@ -23,7 +23,7 @@ app.use(
         "http://localhost:5173",
         "https://fsa-cap.netlify.app",
       ];
-      const netlifyPreviewRegex = /^https:\/\/[\w\d-]+--fsa-cap\.netlify\.app$/;
+      const netlifyPreviewRegex = /^https:\/\/[\w.-]+--fsa-cap\.netlify\.app$/;
       if (
         !origin ||
         allowedOrigins.includes(origin) ||
