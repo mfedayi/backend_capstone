@@ -177,10 +177,34 @@ const voteReply = async (req, res, next) => {
   }
 };
 
+// Gets all replies made by a specific user
+const getUserReplies = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const replies = await prisma.reply.findMany({
+      where: { userId: userId },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        postId: true, // To know which post it belongs to
+        likeCount: true,
+        dislikeCount: true,
+        post: { select: { id: true, content: true } } // Optionally include some parent post info
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(replies);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addReply,
   softDeleteOwnReply,
   adminDeleteReply,
   updateReply,
   voteReply,
+  getUserReplies,
 };
