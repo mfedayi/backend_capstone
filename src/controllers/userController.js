@@ -6,8 +6,8 @@ const {
   createToken,
 } = require("../utils/authHelpers");
 
-//POST /api/user/register
 const registerUser = async (req, res, next) => {
+  // Registers a new user.
   try {
     const { username, email, password, firstname, lastname } = req.body;
 
@@ -41,6 +41,7 @@ const registerUser = async (req, res, next) => {
 };
 
 const loginUser = async (req, res, next) => {
+  // Logs in an existing user.
   try {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -67,6 +68,7 @@ const loginUser = async (req, res, next) => {
 };
 
 const getMe = async (req, res, next) => {
+  // Fetches the profile of the currently authenticated user.
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -93,6 +95,7 @@ const getMe = async (req, res, next) => {
 };
 
 const getAllUsers = async (req, res, next) => {
+  // Fetches all users (Admin only).
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -113,6 +116,7 @@ const getAllUsers = async (req, res, next) => {
 };
 
 const getUserbyId = async (req, res, next) => {
+  // Fetches a specific user by their ID (Admin or self).
   try {
     const { id } = req.params;
 
@@ -143,6 +147,7 @@ const getUserbyId = async (req, res, next) => {
 };
 
 const updateUser = async (req, res, next) => {
+  // Updates a specific user's details (Admin only).
   try {
     const { id } = req.params;
     const { email, firstname, lastname, username } = req.body;
@@ -170,6 +175,7 @@ const updateUser = async (req, res, next) => {
 };
 
 const updateMe = async (req, res, next) => {
+  // Allows the authenticated user to update their own profile details.
   try {
     const { email, firstname, lastname, username } = req.body;
 
@@ -196,6 +202,7 @@ const updateMe = async (req, res, next) => {
 };
 
 const deleteSingleUser = async (req, res, next) => {
+  // Deletes a specific user (Admin only).
   try {
     const { id } = req.params;
     await prisma.user.delete({
@@ -211,6 +218,7 @@ const deleteSingleUser = async (req, res, next) => {
 };
 
 const getPublicUserProfile = async (req, res, next) => {
+  // Fetches a limited public profile for any user.
   try {
     const { userId } = req.params;
     const user = await prisma.user.findUnique({

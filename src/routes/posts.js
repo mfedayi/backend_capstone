@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+// Handles routes related to forum posts.
 
 const { 
     addPost, 

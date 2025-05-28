@@ -1,5 +1,6 @@
 const { prisma } = require("../utils/common");
 const addReply = async (req, res, next) => {
+  // Adds a new reply to a specific post.
   try {
     const { postId } = req.params;
     const { content, parentId } = req.body;
@@ -23,6 +24,7 @@ const addReply = async (req, res, next) => {
   }
 };
 const softDeleteOwnReply = async (req, res, next) => {
+  // Allows a user to soft delete their own reply by updating its content.
   try {
     const { replyId } = req.params;
     const userId = req.user.id;
@@ -58,6 +60,7 @@ const softDeleteOwnReply = async (req, res, next) => {
 };
 
 const adminDeleteReply = async (req, res, next) => {
+  // Allows an admin to permanently delete any reply.
   try {
     const { replyId } = req.params;
     await prisma.reply.delete({ where: { id: replyId } });
@@ -68,6 +71,7 @@ const adminDeleteReply = async (req, res, next) => {
 };
 
 const updateReply = async (req, res, next) => {
+  // Allows a user to update their own reply.
   try {
     const { replyId } = req.params;
     const { content } = req.body;
@@ -102,6 +106,7 @@ const updateReply = async (req, res, next) => {
 };
 
 const voteReply = async (req, res, next) => {
+  // Handles user voting (like/dislike) on a specific reply.
   try {
     const { replyId } = req.params;
     const { voteType } = req.body; 

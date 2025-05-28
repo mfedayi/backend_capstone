@@ -4,11 +4,10 @@ const axios = require("axios");
 const Base_URL = "https://newsapi.org/v2/everything";
 const NEWS_API_KEY = "da69618ddeba4274a2a5aeed22f4a599";
 
+// Route to get news articles for a specific team.
 router.get("/team/:teamName", async (req, res, next) => {
   try {
     const encodedName = encodeURIComponent(req.params.teamName);
-console.log("Team Name:", req.params.teamName)
-console.log("encoded Name:", encodedName);
     const response = await axios.get(`${Base_URL}`, {
       params: {
         q: req.params.teamName,

@@ -1,6 +1,6 @@
-const express = require("express"); // Express framework
-const morgan = require("morgan"); // HTTP request logger
-const dotenv = require("dotenv"); // Environment variable configuration
+const express = require("express");
+const morgan = require("morgan");
+const dotenv = require("dotenv");
 const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler"); // Error handling middleware
 const userRoutes = require("./routes/user"); // User routes
@@ -41,23 +41,23 @@ app.use(
 app.use(morgan("dev"));
 app.use(express.json());
 
-//Temporary test route
+// Test route to check if the server is live.
 app.get("/api/ping", (req, res) => {
   res.send({ message: "We are Live!!" });
 });
 
-app.use("/api/user", userRoutes); // User routes setup
+app.use("/api/user", userRoutes);
 app.use("/api/teams", teamRoutes);
-app.use("/api/posts", postRoutes); // Post routes setup
-app.use("/api/replies", replyRoutes); // Reply routes setup
+app.use("/api/posts", postRoutes);
+app.use("/api/replies", replyRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/news", newsRoutes);
 
-// Start the server
+// Start the server on the specified port or default to 3000.
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`SERVER running on PORT: ${PORT}`);
 });
 
-//Keep at the bottom
+// Error handler middleware, should be the last middleware.
 app.use(errorHandler);
